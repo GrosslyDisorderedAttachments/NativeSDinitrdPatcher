@@ -1,0 +1,24 @@
+# wait for sdcard
+# wait has a timeot of 5 seconds.
+# calling it 4 times allows 20 seconds for the mmcblk0p2 partition to show up
+wait /dev/block/mmcblk0p2
+wait /dev/block/mmcblk0p2
+wait /dev/block/mmcblk0p2
+wait /dev/block/mmcblk0p2
+# SD Card Speed Fix
+write /sys/devices/virtual/bdi/179:0/read_ahead_kb 2048
+# File system check
+exec /bin/busybox sh -c "/bin/e2fsck -p /dev/block/mmcblk0p2 > /fsck.log"
+# mount the 1st (NativeSD) SD-EXT partition
+mkdir /NativeSD
+# optional other mounts
+mount auto /dev/block/mmcblk0p2 /NativeSD wait noatime nodiratime barrier=0
+# mount the system data app dir
+exec /bin/busybox mount --bind /NativeSD/rOm/system /system
+exec /bin/busybox mount --bind /NativeSD/rOm/data /data
+# cleanup
+# delete /bin to free ram
+rm /bin/busybox
+rm /bin/e2fsck
+rmdir /bin
+mount yaffs2 mtd@cache /mnt/cache nosuid nodev
